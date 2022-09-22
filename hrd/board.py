@@ -1,6 +1,3 @@
-import copy
-
-
 WIDTH = 4
 HEIGHT = 5
 
@@ -64,12 +61,7 @@ class Board:
 
 
     def __str__(self) -> str:
-        s = ''
-        for r in range(HEIGHT):
-            for c in range(WIDTH):
-                s += str(self.board[r][c])
-            s += '\n'
-        return s
+        return '\n'.join(''.join(p for p in c) for c in self.board)
 
 
     def generate_board_and_pieces(self, board_file: str) -> list:
@@ -115,7 +107,7 @@ class Board:
 
 
     def make_move(self, curr_piece, dst_piece):
-        new_pieces = copy.copy(self.pieces)
+        new_pieces = self.pieces.copy()
         for i in range(len(new_pieces)):
             if new_pieces[i] == curr_piece:
                 new_pieces[i] = dst_piece

@@ -1,18 +1,6 @@
-from queue import PriorityQueue
-from .board import Board
-from dataclasses import dataclass, field
+import heapq
 from collections import deque
-
-
-# For use in the priority queue
-@dataclass(order=True)
-class PriorityBoard:
-    priority: int
-    board: Board=field(compare=False)
-
-    def __init__(self, priority, board) -> None:
-        self.priority = priority
-        self.board = board
+from .board import Board
 
 
 class Solver:
@@ -39,11 +27,11 @@ class Solver:
 
         solution = deque([])
         while True:
-            solution.appendleft(str(curr_board) + '\n')
+            solution.appendleft(f'{str(curr_board)}\n\n')
             if curr_board == initial:
                 break
             curr_board = parent[curr_board]
-
+            
         with open(output_file, 'w') as f:
             f.write(f'Cost of the solution: {len(solution) - 1}\n')
             for b in solution:
@@ -54,14 +42,14 @@ class Solver:
         visited = set()
         costs = {self.board: 0}
         parent = {self.board: None}
-        pq = PriorityQueue()
-        pq.put(PriorityBoard(0, self.board))
+        pq = [(0, id(self.board), self.board)]
         initial = curr_board = self.board
 
-        while not pq.empty():
-            curr_board = pq.get().board
+        while len(pq) > 0:
+            curr_board = heapq.heappop(pq)[2]
             if curr_board.is_solved():
                 break
+            
             for board in curr_board.get_next_boards():
                 if board not in visited:
                     visited.add(board)
@@ -69,16 +57,16 @@ class Solver:
                     if board not in costs or new_cost < costs[board]:
                         costs[board] = new_cost
                         priority = new_cost + self.heuristic(board)
-                        pq.put(PriorityBoard(priority, board))
+                        heapq.heappush(pq, (priority, id(board), board))
                         parent[board] = curr_board
 
         solution = deque([])
         while True:
-            solution.appendleft(str(curr_board) + '\n')
+            solution.appendleft(f'{str(curr_board)}\n\n')
             if curr_board == initial:
                 break
             curr_board = parent[curr_board]
-
+            
         with open(output_file, 'w') as f:
             f.write(f'Cost of the solution: {len(solution) - 1}\n')
             for b in solution:
@@ -87,10 +75,11 @@ class Solver:
 
 def manhattan_distance(board: Board):
     for piece in board.pieces:
-        if piece.name == '1':
+        if piece.name == '1':   
             piece_pos = piece.curr_coords[3]
             return abs(4 - piece_pos[0]) + abs(2 - piece_pos[1])  # (4, 2) is bottom right coord of the solution
-    return 0
+
+    return 0  # should never get here
 
 
 def heuristic_2():
