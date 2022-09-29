@@ -52,19 +52,29 @@ class Board:
         self.board = get_board(pieces)
 
 
-    def __eq__(self, other) -> bool:
-        return self.board == other.board
+    def hash_key(self):
+        def orientation(piece: Piece):
+            if piece.name not in {'1', '7'}:
+                c1 = piece.curr_coords[0] 
+                c2 = piece.curr_coords[1]
+                if (abs(c1[0] - c2[0]), abs(c1[1] - c2[1])) == (1, 0):
+                    return '3'  # up
+                else:
+                    return '2'  # side
+            elif piece.name == '7':
+                return '4'
+            else:
+                return '1'
 
-    
-    def __hash__(self) -> int:
-        return hash(str(self))
+        b = [['0'] * WIDTH for _ in range(HEIGHT)]
+        for piece in self.pieces:
+            for r, c in piece.curr_coords:
+                b[r][c] = orientation(piece)
+
+        return '\n'.join(''.join(p for p in c) for c in b)
 
 
-    def __str__(self) -> str:
-        return '\n'.join(''.join(p for p in c) for c in self.board)
-
-
-    def generate_board_and_pieces(self, board_file: str) -> list:
+    def generate_board_and_pieces(self, board_file: str):
         def dict_add(d, k, v):
             if k in d:
                 d[k].append(v)
@@ -90,10 +100,9 @@ class Board:
                             pieces.append(Piece(name, [coord]))
                     else:
                         pieces.append(Piece(name, idx_list))
-
                 for r, c in idx_list:
                     board[r][c] = name
-
+                    
             self.board = board
             self.pieces = pieces
 
@@ -112,7 +121,7 @@ class Board:
             if new_pieces[i] == curr_piece:
                 new_pieces[i] = dst_piece
                 return Board(new_pieces)
-    
-    
+
+
     def is_solved(self):
         return self.board[4][1] == '1' and self.board[4][2] == '1'

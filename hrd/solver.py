@@ -7,7 +7,7 @@ class Solver:
     def __init__(self, board) -> None:
         self.board = board
         self.heuristic = manhattan_distance
-
+        
         
     def dfs(self, output_file: str):
         visited = set()
@@ -20,14 +20,14 @@ class Solver:
             if curr_board.is_solved():
                 break
             for board in curr_board.get_next_boards():
-                if board not in visited:
-                    visited.add(board)
+                if board.hash_key() not in visited:
+                    visited.add(board.hash_key())
                     stack.append(board)
                     parent[board] = curr_board
 
         solution = deque([])
         while True:
-            solution.appendleft(f'{str(curr_board)}\n\n')
+            solution.appendleft(f'{curr_board.hash_key()}\n\n')
             if curr_board == initial:
                 break
             curr_board = parent[curr_board]
@@ -35,7 +35,7 @@ class Solver:
         with open(output_file, 'w') as f:
             f.write(f'Cost of the solution: {len(solution) - 1}\n')
             for b in solution:
-                f.write(str(b))
+                f.write(b)
 
 
     def a_star(self, output_file: str):
@@ -51,18 +51,17 @@ class Solver:
                 break
             
             for board in curr_board.get_next_boards():
-                if board not in visited:
-                    visited.add(board)
+                if board.hash_key() not in visited:
+                    visited.add(board.hash_key())
                     new_cost = costs[curr_board] + 1  # every move costs 1
                     if board not in costs or new_cost < costs[board]:
+                        heapq.heappush(pq, (new_cost + self.heuristic(board), id(board), board))
                         costs[board] = new_cost
-                        priority = new_cost + self.heuristic(board)
-                        heapq.heappush(pq, (priority, id(board), board))
                         parent[board] = curr_board
 
         solution = deque([])
         while True:
-            solution.appendleft(f'{str(curr_board)}\n\n')
+            solution.appendleft(f'{curr_board.hash_key()}\n\n')
             if curr_board == initial:
                 break
             curr_board = parent[curr_board]
@@ -70,7 +69,7 @@ class Solver:
         with open(output_file, 'w') as f:
             f.write(f'Cost of the solution: {len(solution) - 1}\n')
             for b in solution:
-                f.write(str(b))
+                f.write(b)
 
 
 def manhattan_distance(board: Board):
@@ -82,5 +81,15 @@ def manhattan_distance(board: Board):
     return 0  # should never get here
 
 
-def heuristic_2():
-    raise NotImplementedError
+# manhattan + number of pieces in the solution area
+def advanced_heuristic(board: Board):
+    man_dist = manhattan_distance(board)
+    num_in_sol = 0
+    
+    for piece in board.pieces:
+        for coord in piece.curr_coords:
+            if coord in {(4, 1), (4, 2), (3, 1), (3, 2)}:
+                num_in_sol += 1
+                break
+    
+    return man_dist + num_in_sol

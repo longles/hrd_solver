@@ -4,8 +4,9 @@ from hrd.solver import Solver
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 4:
+    if len(sys.argv) != 4:
         print('Incorrect number of arguments!')
+        print('Usage: hrd.py [input_file] [dfs_output_file] [a_star_output_file]')
         exit(1)
 
     input_file = sys.argv[1]
